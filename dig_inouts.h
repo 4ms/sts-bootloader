@@ -77,7 +77,14 @@
 #define CLIPLED2_OFF CLIPLED2_GPIO->BSRRH = CLIPLED2_pin
 
 
+//protoype p5 only: pin to control an analog switch which selects line level (switch open) or modular level (switch closed)
+#define LINESWITCH_pin GPIO_Pin_7
+#define LINESWITCH_GPIO GPIOG
+#define LINESWITCH_OFF LINESWITCH_GPIO->BSRRL = LINESWITCH_pin
 
+#define EDIT_BUTTONREF_pin GPIO_Pin_4
+#define EDIT_BUTTONREF_GPIO GPIOD
+#define EDIT_BUTTONREF_OFF EDIT_BUTTONREF_GPIO->BSRRH = EDIT_BUTTONREF_pin
 
 
 /*

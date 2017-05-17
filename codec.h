@@ -11,8 +11,6 @@
 #include "stm32f4xx_spi.h"
 #include "stm32f4xx_rcc.h"
 
-#define USE_CODEC_B
-
 /* I2C clock speed configuration (in Hz)  */
 #define I2C_SPEED                        50000
 

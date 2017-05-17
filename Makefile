@@ -20,7 +20,7 @@ OBJECTS = 	startup_stm32f429_439xx.o system_stm32f4xx.o \
 LDSCRIPT = stm32f429xx.ld
 
 ARCHFLAGS = -mlittle-endian -mthumb -mthumb-interwork -mcpu=cortex-m4 -mfloat-abi=soft -mfpu=fpv4-sp-d16 
-F_CPU          = 168000000L
+F_CPU          = 180000000L
 
 CFLAGS = -g2 -Os $(ARCHFLAGS)
 CFLAGS +=  -I. -DARM_MATH_CM4 -D'__FPU_PRESENT=1' -DF_CPU=$(F_CPU)

@@ -383,14 +383,14 @@ void InitializeReception() {
 	ui_state = UI_STATE_WAITING;
 }
 
-#define BOOTLOADER_BUTTON (\
-		PLAY1BUT && \
+#define BOOTLOADER_BUTTONS (\
+		PLAY2BUT && \
 		RECBUT &&\
-		EDIT_BUTTON &&\
+		!EDIT_BUTTON &&\
 		!REV1BUT &&\
 		!BANK1BUT && \
 		!BANKRECBUT &&\
-		!PLAY2BUT && \
+		!PLAY1BUT && \
 		!BANK2BUT && \
 		!REV2BUT\
 		)
@@ -402,13 +402,11 @@ int main(void) {
 
 	delay(25000);
 
-	//NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0000);
 	// init_dig_inouts();
+	// PLAYLED2_ON;
 	// while (1){	
 	// 	PLAYLED1_ON;
-	// 	PLAYLED2_ON;
 	// 	PLAYLED1_OFF;
-	// 	PLAYLED2_OFF;
 	// }
 
 	Init();
@@ -421,7 +419,7 @@ int main(void) {
 
 	dly=32000;
 	while(dly--){
-		if (BOOTLOADER_BUTTON) button_debounce++;
+		if (BOOTLOADER_BUTTONS) button_debounce++;
 		else button_debounce=0;
 	}
 	exit_updater = (button_debounce>15000) ? 0 : 1;
@@ -436,12 +434,13 @@ int main(void) {
 	}
 
 	CLIPLED2_ON;
-	dly=4000;
-	while(dly--){
-		if (BOOTLOADER_BUTTON) button_debounce++;
-		else button_debounce=0;
-	}
-	exit_updater = (button_debounce>2000) ? 0 : 1;
+	// dly=4000;
+	// while(dly--){
+	// 	if (BOOTLOADER_BUTTONS) button_debounce++;
+	// 	else button_debounce=0;
+	// }
+	// exit_updater = (button_debounce>2000) ? 0 : 1;
+	//exit_updater = 0;
 
 	manual_exit_primed=0;
 	PLAYLED2_OFF;
@@ -449,18 +448,6 @@ int main(void) {
 
 	while (!exit_updater) {
 		g_error = false;
-
-
-		//QPSK
-		/*
-		if (demodulator.state() == DEMODULATOR_STATE_OVERFLOW){
-			g_error = true;
-			LED_ON(LED_LOCK[2]);
-			LED_ON(LED_LOCK[3]);
-		}else{
-			demodulator.ProcessAtLeast(32);
-		}
-		 */
 
 
 		while (demodulator.available() && !g_error && !exit_updater) {

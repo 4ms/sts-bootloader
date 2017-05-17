@@ -109,7 +109,7 @@ const uint8_t codec_init_data_slave[] =
 		SINGLE_SPEED
 		| RATIO0
 		| SLAVE
-		| DIF_LEFTJUST_24b,//MODECTRL1
+		| DIF_LEFTJUST_24b,//MODECTRL1 //is DIF_I2S_24b in sts code
 
 		SLOW_FILT_SEL
 		| DEEMPH_OFF,		//DACCTRL
