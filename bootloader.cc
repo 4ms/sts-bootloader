@@ -1,8 +1,8 @@
 // Bootloader.cc
 // Copyright 2012 Olivier Gillet.
 //
-// Author: Olivier Gillet (ol.gillet@gmail.com)
-// Modified for DLD project: Dan Green (danngreen1@gmail.com) 2016
+// Original Author: Olivier Gillet (ol.gillet@gmail.com)
+// Modified for Stereo Triggered Sampler: Dan Green (danngreen1@gmail.com) 2017
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -384,15 +384,15 @@ void InitializeReception() {
 }
 
 #define BOOTLOADER_BUTTONS (\
-		PLAY2BUT && \
+		EDIT_BUTTON &&\
 		RECBUT &&\
-		!EDIT_BUTTON &&\
-		!REV1BUT &&\
-		!BANK1BUT && \
-		!BANKRECBUT &&\
-		!PLAY1BUT && \
-		!BANK2BUT && \
-		!REV2BUT\
+			!BANKRECBUT &&\
+		PLAY1BUT && \
+			!BANK1BUT && \
+			!PLAY2BUT && \
+			!BANK2BUT && \
+			!REV1BUT &&\
+			!REV2BUT\
 		)
 
 int main(void) {
