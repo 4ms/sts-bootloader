@@ -120,8 +120,8 @@ const uint8_t codec_init_data_slave[] =
 		0b00000000,			//DACBVOL
 
 		ADC_DIF_LJUST
-		| HPFDisableA
-		| HPFDisableB //ADCCTRL
+	/*	| HPFDisableA
+		| HPFDisableB *///ADCCTRL
 
 };
 

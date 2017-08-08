@@ -35,11 +35,6 @@ void init_dig_inouts(void){
 	gpio.GPIO_OType = GPIO_OType_PP;
 	gpio.GPIO_PuPd = GPIO_PuPd_NOPULL;
 
-	gpio.GPIO_Pin = EDIT_BUTTONREF_pin;	GPIO_Init(EDIT_BUTTONREF_GPIO, &gpio);
-	EDIT_BUTTONREF_OFF;
-
-	gpio.GPIO_Pin = LINESWITCH_pin;	GPIO_Init(LINESWITCH_GPIO, &gpio);
-	LINESWITCH_OFF;
 
 	//Trigger Out jacks
 	gpio.GPIO_Pin = ENDOUT1_pin;	GPIO_Init(ENDOUT1_GPIO, &gpio);
@@ -50,6 +45,8 @@ void init_dig_inouts(void){
 	gpio.GPIO_Pin = CLIPLED1_pin;	GPIO_Init(CLIPLED1_GPIO, &gpio);
 	gpio.GPIO_Pin = CLIPLED2_pin;	GPIO_Init(CLIPLED2_GPIO, &gpio);
 
+	//LED Driver enable
+	gpio.GPIO_Pin = LEDDRIVER_OUTPUTENABLE_pin;	GPIO_Init(LEDDRIVER_OUTPUTENABLE_GPIO, &gpio);
 
 
 }

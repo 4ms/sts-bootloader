@@ -47,6 +47,7 @@ extern "C" {
 #include "dig_inouts.h"
 #include "codec.h"
 #include "i2s.h"
+#include "pca9685_driver.h"
 
 #define delay(x)						\
 do {							\
@@ -62,7 +63,7 @@ using namespace stmlib;
 using namespace stm_audio_bootloader;
 
 
-const float kSampleRate = 48000.0;
+const float kSampleRate = 44100.0;
 //const float kModulationRate = 6000.0; //QPSK 6000
 //const float kBitRate = 12000.0; //QPSK 12000
 uint32_t kStartExecutionAddress =		0x08008000;
@@ -110,53 +111,93 @@ void *memcpy(void *dest, const void *src, size_t n)
     return dest;
 }
 
+enum Buttons_LEDs {
+	RecBankButtonLED,
+	RecButtonLED,
+	Reverse1ButtonLED,
+	Play1ButtonLED,
+	Bank1ButtonLED,
+	Bank2ButtonLED,
+	Play2ButtonLED,
+	Reverse2ButtonLED,
+	NUM_RGBBUTTONS
+};
+#define NUM_RGB_ELEMENTS (NUM_RGBBUTTONS*3)
 
 void update_LEDs(void){
 	static uint16_t dly=0;
 	uint16_t fade_speed=800;
-	uint8_t pck_ctr=0;
 
 	if (ui_state == UI_STATE_RECEIVING){
 		if (dly++>400){
 			dly=0;
-			CLIPLED1_OFF;
-
-		} else if (dly==200){
+			PLAYLED1_ON;
+			PLAYLED2_ON;
 			CLIPLED1_ON;
-		}
+			CLIPLED2_OFF;
 
-		/*
+		} else if (dly==300){
+			PLAYLED1_OFF;
+			PLAYLED2_ON;
+			CLIPLED1_ON;
+			CLIPLED2_ON;
+		} else if (dly==200){
+			PLAYLED1_ON;
+			PLAYLED2_OFF;
+			CLIPLED1_ON;
+			CLIPLED2_ON;
+		} else if (dly==100){
+			PLAYLED1_ON;
+			PLAYLED2_ON;
+			CLIPLED1_OFF;
+			CLIPLED2_ON;
+		}
+		//Turn off PLAY button when we receive the first packet		
+		if (packet_index == 1) 	LEDDriver_setRGBLED_RGB(Play1ButtonLED, 0, 0, 0);
+
+		//Animate button LEDs as we receive packets
 		if (packet_index>old_packet_index){
 			old_packet_index=packet_index;
 
-			if (pck_ctr)
-				CLIPLED2_ON;
-			else
-				LED_OVLD2_OFF;
+		if (((packet_index/4) % (NUM_RGB_ELEMENTS*2) )<NUM_RGB_ELEMENTS)
+			LEDDriver_set_one_LED((packet_index/4) % NUM_RGB_ELEMENTS, 2000);
+		else
+			LEDDriver_set_one_LED((packet_index/4) % NUM_RGB_ELEMENTS, 0);
 
-			pck_ctr=1-pck_ctr;
-		}*/
+		}
 
 	} else if (ui_state == UI_STATE_WRITING){
 
 		if (dly++>400){
 			dly=0;
+			PLAYLED1_OFF;
+			PLAYLED2_ON;
+			CLIPLED1_OFF;
 			CLIPLED2_OFF;
 
+
 		} else if (dly==200){
-			CLIPLED2_ON;
+			PLAYLED1_ON;
+			PLAYLED2_OFF;
+			CLIPLED1_OFF;
+			CLIPLED2_OFF;
 		}
 
 	} else if (ui_state == UI_STATE_WAITING){
 
 
 		if (dly==(fade_speed>>1)){
-			PLAYLED1_ON;
-			PLAYLED2_ON;
+			PLAYLED1_OFF;
+			PLAYLED2_OFF;
+			CLIPLED1_ON;
+			CLIPLED2_OFF;
 
 		}
 		if (dly++==fade_speed) {dly=0;
+			PLAYLED1_OFF;
 			PLAYLED2_OFF;
+			CLIPLED1_OFF;
+			CLIPLED2_ON;
 		}
 
 	}
@@ -311,7 +352,6 @@ inline void CopyMemory(uint32_t src_addr, uint32_t dst_addr, size_t size) {
 
 
 inline void ProgramPage(const uint8_t* data, size_t size) {
-	//LED_PINGBUT_ON;
 
 	FLASH_Unlock();
 	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR |
@@ -331,7 +371,6 @@ inline void ProgramPage(const uint8_t* data, size_t size) {
 			break;
 		}
 	}
-	//LED_PINGBUT_OFF;
 }
 
 void init_audio_in(){
@@ -341,11 +380,25 @@ void init_audio_in(){
 	do {register unsigned int i; for (i = 0; i < 1000000; ++i) __asm__ __volatile__ ("nop\n\t":::"memory");} while (0);
 
 	//QPSK or Codec
-	Codec_Init(48000);
+	Codec_Init(44100);
 
 	NVIC_EnableIRQ(AUDIO_I2S_EXT_DMA_IRQ);
 
 }
+
+void init_RGB_LEDs(void)
+{
+	uint8_t i;
+
+	LEDDRIVER_OUTPUTENABLE_OFF;
+	LEDDriver_Init(2);
+
+	for (i=0;i<NUM_RGBBUTTONS;i++)
+		LEDDriver_setRGBLED_RGB(i, 0,0,0);
+
+	LEDDRIVER_OUTPUTENABLE_ON;
+}
+
 
 void Init() {
 	sys.Init((F_CPU / (2*kSampleRate ))- 1, false);
@@ -384,14 +437,14 @@ void InitializeReception() {
 }
 
 #define BOOTLOADER_BUTTONS (\
-		EDIT_BUTTON &&\
+			!PLAY1BUT && \
 		RECBUT &&\
-			!BANKRECBUT &&\
-		PLAY1BUT && \
-			!BANK1BUT && \
-			!PLAY2BUT && \
-			!BANK2BUT && \
+			!EDIT_BUTTON &&\
 			!REV1BUT &&\
+		BANK1BUT && \
+		BANKRECBUT &&\
+			!PLAY2BUT && \
+		BANK2BUT && \
 			!REV2BUT\
 		)
 
@@ -402,12 +455,6 @@ int main(void) {
 
 	delay(25000);
 
-	// init_dig_inouts();
-	// PLAYLED2_ON;
-	// while (1){	
-	// 	PLAYLED1_ON;
-	// 	PLAYLED1_OFF;
-	// }
 
 	Init();
 	InitializeReception(); //FSK
@@ -425,26 +472,22 @@ int main(void) {
 	exit_updater = (button_debounce>15000) ? 0 : 1;
 	CLIPLED1_OFF;
 
+	manual_exit_primed=0;
 
 	if (!exit_updater){
 		PLAYLED1_ON;
 		PLAYLED2_ON;
 		init_audio_in(); //QPSK or Codec
 		sys.StartTimers();
+
+		init_RGB_LEDs();
+
+		//Play button Green, all other buttons Off
+		LEDDriver_setRGBLED_RGB(Play1ButtonLED, 0, 0, 1000);
 	}
 
-	CLIPLED2_ON;
-	// dly=4000;
-	// while(dly--){
-	// 	if (BOOTLOADER_BUTTONS) button_debounce++;
-	// 	else button_debounce=0;
-	// }
-	// exit_updater = (button_debounce>2000) ? 0 : 1;
-	//exit_updater = 0;
-
-	manual_exit_primed=0;
+	PLAYLED1_OFF;
 	PLAYLED2_OFF;
-	CLIPLED2_OFF;
 
 	while (!exit_updater) {
 		g_error = false;
@@ -497,6 +540,11 @@ int main(void) {
 		}
 		if (g_error) {
 			ui_state = UI_STATE_ERROR;
+			PLAYLED1_ON;
+
+			//Rev1 button Green, all others off
+			for (i=0;i<NUM_RGBBUTTONS;i++)	LEDDriver_setRGBLED_RGB(i, 0,0,0);
+			LEDDriver_setRGBLED_RGB(Reverse1ButtonLED, 0, 4000, 0);
 
 			while (!REV1BUT){;}
 
@@ -507,10 +555,17 @@ int main(void) {
 			InitializeReception();
 			manual_exit_primed=0;
 			exit_updater=false;
+
+			//Play button Green, All other buttons Off
+			for (i=0;i<NUM_RGBBUTTONS;i++)	LEDDriver_setRGBLED_RGB(i, 0,0,0);
+			LEDDriver_setRGBLED_RGB(Play1ButtonLED, 0, 0, 1000);
+
 		}
 	}
 
 	PLAYLED1_OFF;	PLAYLED2_OFF;	CLIPLED1_OFF;	CLIPLED2_OFF;
+	LEDDRIVER_OUTPUTENABLE_OFF;
+	for (i=0;i<NUM_RGBBUTTONS;i++)	LEDDriver_setRGBLED_RGB(i, 0,0,0);
 
 	Codec_PowerDown();
 	Codec_Deinit();
