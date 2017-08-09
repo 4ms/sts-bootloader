@@ -166,8 +166,18 @@
 
 /* PLLI2S_VCO = (HSE_VALUE Or HSI_VALUE / PLL_M) * PLLI2S_N
    I2SCLK = PLLI2S_VCO / PLLI2S_R */
+
+//295/6 actually runs at about 48k (48.01k)
+//#define PLLI2S_N   295
+//#define PLLI2S_R   6
+
+//271/6 actually runs at about 44,106Hz (calculates to 45,167Hz which is off by 2.4% = 24000ppm! --- why?)
 #define PLLI2S_N   271
 #define PLLI2S_R   6
+
+//295/3 runs at about 96k
+// #define PLLI2S_N   295
+// #define PLLI2S_R   3
 
 /******************************************************************************/
 
