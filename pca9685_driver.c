@@ -223,7 +223,7 @@ inline uint32_t LEDDriver_senddata(uint8_t data){
 
 }
 
-inline void LEDDriver_endxfer(void){
+void LEDDriver_endxfer(void) {
 	/* End the configuration sequence */
 	I2C_GenerateSTOP(LEDDRIVER_I2C, ENABLE);
 
